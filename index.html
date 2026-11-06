@@ -1,0 +1,29 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hashzap | Chat</title>
+<style>:root{--bg:#eef2f6;--c:#fff;--t:#14202e;--m:#5a6a7c;--l:#d5dde8;--a:#1f9d6b;--me:#d8f5e6;--ot:#fff}@media(prefers-color-scheme:dark){:root{--bg:#0c1219;--c:#151e29;--t:#e6edf5;--m:#8fa0b4;--l:#253344;--a:#3fcf94;--me:#164a37;--ot:#1c2837}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:15px/1.5 system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}[hidden]{display:none!important}
+.w{max-width:720px;width:100%;margin:auto;padding:16px;display:flex;flex-direction:column;flex:1}h1{margin:8px 0 0;font-size:2rem}p{color:var(--m);margin:4px 0 0}
+button,input{font:inherit}button{background:var(--a);color:#fff;border:0;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer}input{flex:1;padding:11px;border:1px solid var(--l);border-radius:8px;background:var(--c);color:var(--t);min-width:0}
+#home{margin:auto 0;text-align:center}#home button{margin-top:18px;padding:12px 26px}
+dialog{border:1px solid var(--l);border-radius:14px;background:var(--c);color:var(--t);width:min(360px,92vw);padding:20px}dialog::backdrop{background:rgba(0,0,0,.55)}dialog h2{margin:0 0 12px}dialog input{width:100%;margin-bottom:12px}
+#chat{flex:1;display:flex;flex-direction:column;min-height:0}#top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}#top b{font-size:1.2rem}
+#msgs{flex:1;overflow-y:auto;background:var(--c);border:1px solid var(--l);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;min-height:50vh;max-height:68vh}
+.m{max-width:80%;padding:8px 12px;border-radius:12px;background:var(--ot);border:1px solid var(--l);align-self:flex-start;word-wrap:break-word}.m.me{align-self:flex-end;background:var(--me)}.m small{display:block;color:var(--m);font-size:.72rem}.m b{font-size:.8rem;color:var(--a)}
+.sys{align-self:center;color:var(--m);font-size:.82rem}.row{display:flex;gap:8px;margin-top:10px}
+</style></head><body><div class="w">
+<div id="home"><h1>Hashzap</h1><p>Chat em tempo real entre abas do navegador.</p><button id="ini">Iniciar Chat</button></div>
+<div id="chat" hidden><div id="top"><b>Hashzap</b><span id="eu" style="color:var(--m)"></span></div><div id="msgs" aria-live="polite"></div><form class="row" id="f"><input id="tx" placeholder="Escreva sua mensagem" autocomplete="off"><button>Enviar</button></form><p style="font-size:.8rem">Dica: abra esta página em outra aba, entre com outro nome e veja as mensagens chegarem.</p></div></div>
+<dialog id="dlg"><h2>Bem vindo ao Hashzap</h2><input id="nm" placeholder="Escreva seu nome no chat" maxlength="24"><button id="ent" style="width:100%">Entrar no chat</button></dialog>
+<script>
+var $=function(i){return document.getElementById(i)},KEY="hashzap_hist",nome="",ch=null;try{ch=new BroadcastChannel("hashzap")}catch(e){}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function hist(){try{return JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){return[]}}
+function salva(m){var h=hist();h.push(m);try{localStorage.setItem(KEY,JSON.stringify(h.slice(-200)))}catch(e){}}
+function show(m){var d=document.createElement("div");if(m.sys){d.className="sys";d.textContent=m.t}else{d.className="m"+(m.n===nome?" me":"");d.innerHTML=(m.n===nome?"":"<b>"+esc(m.n)+"</b>")+esc(m.t)+"<small>"+m.h+"</small>"}$("msgs").appendChild(d);$("msgs").scrollTop=1e9}
+function envia(m){salva(m);show(m);if(ch)ch.postMessage(m)}
+if(ch)ch.onmessage=function(e){if(nome)show(e.data)};
+window.addEventListener("storage",function(e){if(e.key===KEY&&!ch&&nome){var h=hist();show(h[h.length-1])}});
+$("ini").onclick=function(){$("dlg").showModal?$("dlg").showModal():$("dlg").setAttribute("open","");$("nm").focus()};
+function entrar(){var n=$("nm").value.trim();if(!n)return;nome=n;$("dlg").close&&$("dlg").close();$("home").hidden=true;$("chat").hidden=false;$("eu").textContent="Você: "+n;hist().slice(-30).forEach(show);envia({sys:1,t:n+" entrou no chat"});$("tx").focus()}
+$("ent").onclick=entrar;$("nm").onkeydown=function(e){if(e.key==="Enter")entrar()};
+$("f").onsubmit=function(e){e.preventDefault();var t=$("tx").value.trim();if(!t)return;envia({n:nome,t:t,h:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})});$("tx").value=""};
+</script></body></html>
